@@ -1,0 +1,340 @@
+---
+title: "Exploring the BRFSS data"
+author: "Ernâni de Britto Murtinho (ernanibmurtinho@gmail.com)"
+output: 
+  html_document: 
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+---
+
+## Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+```
+
+### Load data
+
+```{r load-data}
+load("brfss2013.RData")
+```
+
+
+
+* * *
+
+## Part 1: Data
+
+The Behavioral Risk Factor Surveillance System (BRFSS) is a collaborative survey around the
+
+US territories and the CDC (Centers for Disease Control and Prevention). The data consists in
+
+phone/cellphone surveys that collect all the Diseases that affect the adult population. It&#39;s an
+
+observational study, of health characteristics estimated from the BRFSS pertain to the non-
+
+institutionalized adult population, aged 18 years or older, who reside in the US. Over time, the
+
+number of states participating in the survey increased. This fact, brings to BRFSS a better
+
+accuracy, as time passes. To check how BRFSS data are used by public health experts and
+
+policy makers in all 50 states, DC, and US territories, visit the BRFSS website.
+
+#Generalizability
+
+The point here, is that BRFSS generalize all the regions and countries, for all adults (+18 years)
+
+and people aged 17 years or younger, considering the phone numbers selected using random
+
+sampling, since you have a landline phone or cellphone number (you can&#39;t estimate the
+
+location, precisely). Although the surveys are getting answered, we need to consider the
+
+differences between the countries and the states too. The cellphone data is randomly
+
+generated from a sampling frame of cellular area, but some of the numbers in the cellphone
+
+will get respondents who have moved into other states. But, you need to use generalizability,
+
+because when you are weighting your data, to attempt to remove bias, you need to get more
+
+data to improve the inconsistencies beyond the dataset.
+
+#Causality
+
+Indeed, the BRFSS data is using both landline telephone and cellphone information,
+
+sometimes we can find some troubles, like the difficult on pointing some of the regions. While
+
+you try to call some numbers, randomly, they may not be home at the time of the call, or
+
+maybe be single (most single often have only cellphone calls). But here, we have nothing
+
+assigned to experimental study groups, and, even though, we can only imply correlations, not
+
+causation.
+
+* * *
+
+## Part 2: Research questions
+
+**Research question 1:**
+
+Is there any cause to binge drinking drnk3ge5, and this affect the general health genhlth? Is this correlated with gender sex and it's affect the people aged 17 years or younger?
+
+Here, we will describe any causes for binge drinking, if young people are affected and how the general health could be impacted.The alcohol is a complex question, because that reaches all of the ages and, the point here is to try to discover if we can diagnostic some health status based on it.
+
+**Research question 2:**
+
+Is there a correlation between binge drinking and mental health menthlth?
+
+Here, the intention is to see if mental health could be a cause to binge drinking, to consider if the mental status may affect the behavior.
+
+**Research question 3:**
+
+Is there a correlation between binge drinking and physical health?
+
+And finally, the intention here is to see if physical health could be affected to binge drinking.
+
+
+* at part 3(EDA), I will explain all of these questions.
+
+** All of the variables used, are at the end of this document.
+
+
+* * *
+
+## Part 3: Exploratory data analysis
+
+**Research question 1:**
+
+```{r}
+
+#As we can see here, we can't distinguish if the number of young people is relevant, because we don't have any respondents that is not Adults, we have a lot of NA's
+
+brfss2013 %>% mutate(ladult_count = ladult) %>% group_by(ladult) %>% summarise(count = n())
+
+```
+
+```{r}
+
+#Descriptive analysis
+
+#Here, we will take an overall look at our data, to see our hypothesis testing
+
+brfss2013_sel <- select(brfss2013, drnk3ge5, genhlth, menthlth, physhlth, nummen, numwomen, sex) %>%
+   filter(drnk3ge5 != "NA") %>% filter(genhlth != "NA") %>% filter(menthlth != "NA") %>% filter(physhlth != "NA") %>% filter(nummen != "NA") %>% filter(numwomen != "NA") %>% filter(sex != "NA")
+
+head(brfss2013_sel, 10)
+
+#preparing the data
+
+brfss2013_sel <- brfss2013_sel %>%
+  mutate(beverage = ifelse(drnk3ge5 <= 26, 'low_beverage',
+                    ifelse(drnk3ge5 > 26 && drnk3ge5 <= 51, 'mid_beverage', 'high_beverage' )))
+
+
+#looking at men and women binge drinking proportions
+
+df_beverage_sex_prop <- brfss2013_sel %>%
+   group_by(beverage, sex) %>%
+   summarise(count = n()) %>%
+   arrange(desc(count))
+
+df_beverage_sex_prop
+
+#getting the proportions
+
+67951/87129
+
+# ~ 0.78 of women tend to don't binge drinking, while just ~0.22 of men tend to don't binger drinking.
+
+272/822
+
+# ~0.3309 of women tend to binge drinking, while ~0.77 of men tend to binger drinking.
+
+#looking at the health, regardless of sex
+
+brfss2013_sel_group <- brfss2013_sel %>%
+  group_by(genhlth, beverage) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+
+brfss2013_sel_group
+
+#As we can see, low binge drinking, has better health status.
+
+summaries = summarize(brfss2013_sel, "mentlhlth", mean(menthlth), sd(menthlth))
+colnames(summaries) = c("Var_name", "mean", "sd")
+
+var_summary = summarize(brfss2013_sel, "physhlth", mean(physhlth), sd(physhlth))
+colnames(var_summary) = c("Var_name", "mean", "sd")
+rbind(summaries, var_summary)
+
+
+#Correlate binge drinking and sex
+
+cor(brfss2013_sel$drnk3ge5, as.numeric(as.character(brfss2013_sel$nummen)))
+
+cor(brfss2013_sel$drnk3ge5, as.numeric(as.character(brfss2013_sel$numwomen)))
+
+#Here, we can see that, even though the correlation is not very significant for men, they get a higher value than women, and, although, the women value is insignificant, this points again that men is more inclined to drinking.
+
+```
+
+```{r}
+
+#Now, we will viz the data, to see how the curve reflects the conclusions.
+
+ggplot(brfss2013_sel, aes(drnk3ge5, genhlth)) + geom_point(shape = 15, alpha = 0.5,aes(colour = sex)) + geom_smooth(color = "blue") + facet_grid(.~sex) + geom_jitter(alpha = 0.25) + theme_bw() + labs(x = "Binge drinking + sex", y = "General health + sex")
+
+#***Conclusion
+
+#Although this data is not precise, we can conclude that, with the data we have, men are more inclined to drinking than women, and, forward, we will se if there are other facts that increase binge drinking, like mental health and, if the health status could be affected, because it's just one of the factors that can be a cause, and, again, it's an hypothetical study.
+
+```
+
+
+
+
+**Research question 2:**
+
+```{r}
+
+#Descriptive analysis
+
+#preparing the data
+
+brfss2013_sel <- brfss2013_sel %>%
+  mutate(mental_hlth = ifelse(menthlth <= 5, 'low_menthlth',
+                    ifelse(menthlth > 5 && menthlth <= 20, 'mid_menthlth', 'high_menthlth' )))
+
+
+#looking at the mental health, regardless of sex
+
+brfss2013_sel_group <- brfss2013_sel %>%
+  group_by(mental_hlth, beverage) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+
+brfss2013_sel_group
+
+cor(brfss2013_sel$drnk3ge5,brfss2013_sel$menthlth)
+
+cor(brfss2013_sel$drnk3ge5,brfss2013_sel$physhlth)
+
+#Then, accordingly with the data, we can see that mental health is not directly associated with binge drinking. We can say, just, that the correlation between binge drinking and mental health are a little higher than correlation between binge drinking and physical health.
+
+```
+
+
+```{r}
+
+#And now, we will viz our data:
+
+
+ggplot(brfss2013_sel, aes(drnk3ge5, menthlth)) + geom_point(shape = 15, alpha = 0.5,aes(colour = sex)) + geom_smooth(color = "green") + facet_grid(.~sex) + geom_jitter(alpha = 0.25) + theme_bw() + labs(x = "Binge drinking + sex", y = "Mental health + sex")
+
+#Conclusion
+
+#Although the things we see above, we can see here, at these plots, that mental health can affect a little the influence of binge drinking. In this case we can see rare cases, that makes the data biased.
+
+```
+
+
+
+**Research question 3:**
+
+```{r}
+
+#Descriptive analysis
+
+#preparing the data
+
+brfss2013_sel <- brfss2013_sel %>%
+  mutate(phys_hlth = ifelse(physhlth <= 5, 'low_physhlth',
+                    ifelse(drnk3ge5 > 5 && drnk3ge5 <= 20, 'mid_physhlth', 'high_physhlth' )))
+
+
+#looking at the physical health, regardless of sex
+
+brfss2013_sel_group <- brfss2013_sel %>%
+  group_by(phys_hlth, beverage) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+
+brfss2013_sel_group
+
+#testing hypothesis
+
+#good physical health and small fractions of beverage
+
+#bad physical health and small fractions of beverage
+
+df_beverage_low = brfss2013_sel$drnk3ge5 <= 26
+
+df_physhlth_high = brfss2013_sel$physhlth >= 20
+
+df_physhlth_low = brfss2013_sel$physhlth <= 5
+
+
+#correlations
+
+
+bad_phys_health_cor <- cor(df_beverage_low,df_physhlth_high)
+bad_phys_health_cor
+
+good_phys_health_cor <- cor(df_beverage_low, df_physhlth_low)
+good_phys_health_cor
+
+#These values is not very significant.
+
+```
+
+```{r}
+
+#And now, we will viz our data:
+
+ggplot(brfss2013_sel, aes(drnk3ge5, physhlth)) + geom_point(shape = 15, alpha = 0.5,aes(colour = sex)) + geom_smooth(color = "red") + facet_grid(.~sex) + geom_jitter(alpha = 0.25) + theme_bw() + labs(x = "Binge drinking + sex", y = "Physical health + sex")
+
+#Conclusion
+
+#Again, the data is not conclusive, the pointing is that binge drinking doesn't affect physical health, but as the data says, it could be true, but it's hard to point a fact as a real truth, because we need more consistency, we are looking for a general form, with no distinctions. If you merge a pub data, with a hospital, we could be more assertive, as such as you know exactly who people is drinking and who needs hospital care. But, even so, we can consider that a small fraction of this data, could show us that the health of people that don't get drunk, is better. As wee see, there's a little correlation between physical health and binge drinking and, mental health and binge drinking, but this doesn't reflects nothing with each other.
+
+```
+
+
+Variables:
+
+ladult: Are You 18 Years Of Age Or Older?
+nummen: Number Of Adult Men In Household
+numwomen: Number Of Adult Women In Household
+sex: Respondents Sex
+genhlth: General Health
+physhlth: Number Of Days Physical Health Not Good
+menthlth: Number Of Days Mental Health Not Good
+drnk3ge5: Binge Drinking
+
+Source: https://d3c33hcgiwev3.cloudfront.net/_e34476fda339107329fc316d1f98e042_brfss_codebook.html?Expires=1499558400&Signature=fN48BqjlDlCnYWplYvdGaimE1k3419EzppGU4zvQRvZYf1zCRn2rLOIn3gZsfhdXPvRvfVeJ4ue17czMaVD892RRbOx7bv5U6bUjoaxuXH97FKSWCB8eL32FoFdPnu9loiRvhL0qcX7pnV~fTeZbqYegl9ckRpqyTFAwCyLTB1I_&Key-Pair-Id=APKAJLTNE6QMUY6HBC5A
+
+References:
+
+https://www.cdc.gov/brfss/data_documentation/index.htm
+
+https://www.cdc.gov/brfss/data_documentation/pdf/userguidejune2013.pdf
+
+https://www.cdc.gov/brfss/questionnaires/pdf-ques/2016_brfss_questionnaire_final.pdf
+
+https://www.openintro.org/download.php?file=os2_labSAS_01A&referrer=/stat/labs.php
+
+
+Thank you for your attention!
+
+Best Regards.
+
+Ernâni
