@@ -1,6 +1,6 @@
 ---
 title: "Exploring the BRFSS data"
-author: "Ern‚ni de Britto Murtinho (ernanibmurtinho@gmail.com)"
+author: "Ern√¢ni de Britto Murtinho (ernanibmurtinho@gmail.com)"
 output: 
   html_document: 
     fig_height: 4
@@ -312,13 +312,22 @@ ggplot(brfss2013_sel, aes(drnk3ge5, physhlth)) + geom_point(shape = 15, alpha = 
 Variables:
 
 ladult: Are You 18 Years Of Age Or Older?
+
 nummen: Number Of Adult Men In Household
+
 numwomen: Number Of Adult Women In Household
+
 sex: Respondents Sex
+
 genhlth: General Health
+
 physhlth: Number Of Days Physical Health Not Good
+
 menthlth: Number Of Days Mental Health Not Good
+
 drnk3ge5: Binge Drinking
+
+
 
 Source: https://d3c33hcgiwev3.cloudfront.net/_e34476fda339107329fc316d1f98e042_brfss_codebook.html?Expires=1499558400&Signature=fN48BqjlDlCnYWplYvdGaimE1k3419EzppGU4zvQRvZYf1zCRn2rLOIn3gZsfhdXPvRvfVeJ4ue17czMaVD892RRbOx7bv5U6bUjoaxuXH97FKSWCB8eL32FoFdPnu9loiRvhL0qcX7pnV~fTeZbqYegl9ckRpqyTFAwCyLTB1I_&Key-Pair-Id=APKAJLTNE6QMUY6HBC5A
 
@@ -337,4 +346,4 @@ Thank you for your attention!
 
 Best Regards.
 
-Ern‚ni
+Ern√¢ni
