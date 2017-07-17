@@ -312,12 +312,19 @@ ggplot(brfss2013_sel, aes(drnk3ge5, physhlth)) + geom_point(shape = 15, alpha = 
 Variables:
 
 ladult: Are You 18 Years Of Age Or Older?
+
 nummen: Number Of Adult Men In Household
+
 numwomen: Number Of Adult Women In Household
+
 sex: Respondents Sex
+
 genhlth: General Health
+
 physhlth: Number Of Days Physical Health Not Good
+
 menthlth: Number Of Days Mental Health Not Good
+
 drnk3ge5: Binge Drinking
 
 
